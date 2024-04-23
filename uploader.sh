@@ -23,7 +23,7 @@ done
 
 echo "The file has been analyzed."
 
-echo "$status" > status_1.json
+echo "$status" > status_2.json
 
 #fileType=$(echo '$status' | jq -r '.data.threat_summary.results.file_type')
 #fileThreatScore=$(echo '$status' | jq -r '.data.threat_score.results.score')
