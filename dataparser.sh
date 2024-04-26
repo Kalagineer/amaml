@@ -3,15 +3,24 @@
 ###############################################################################
 #   dataparser.sh
 #··············································································
-#
+#   Written by: José Pérez Vidal
+#··············································································
+#   Usage:  dataparser.sh [file].json
+#   Output: creates a human readable file called parsed-[file].data
+#           in the current working directory
+
+
+
+#  First the existence of the file is checked
+if [ -f "$1" ]; then
+    data=$(cat $1)
+else
+    echo "The file \"$1\" doesn't exist."
+    exit 1
+fi
 
 
 # Output file generator
-
-data=$(cat $1)
-
-# echo "$data"
-
 output_filename="parsed-${1%.json}.data"
 
 echo "-------------------------------------------------------------------------"
@@ -26,7 +35,7 @@ echo "-------------------------------------------------------------------------"
 #db_info=$(echo "$data" | jq -r '.data')
 #echo "$db_info"
 
-#sleep 10
+# sleep 10
 # JSON Parsing
 
 ## General Information
@@ -40,7 +49,11 @@ invalid_pechecksum=$(echo "$data" | jq -r '.data.threat_score.results.signatures
 malformed_richpedata=$(echo "$data" | jq -r '.data.threat_score.results.signatures[6].discovered.malformed_rich_pe_data')
 removed_richpedata=$(echo "$data" | jq -r '.data.threat_score.results.signatures[6].discovered.rich_data_removed')
 
-
+## Dynamic Analysis
+os_run=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].os_run')
+arch_run=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].arch')
+timestamp=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].time_stamp')
+emulation_time=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].emulation_total_runtime')
 
 
 
@@ -59,15 +72,27 @@ echo "   > Invalid PE Checksum: $invalid_pechecksum                            "
 echo "   > Malformed Rich PE Data: $malformed_richpedata                       "    >> $output_filename
 echo "   > Removed Rich PE Data: $removed_richpedata                           "    >> $output_filename
 echo "-------------------------------------------------------------------------"    >> $output_filename
+echo " DYNAMIC ANALYSIS DATA                                                   "    >> $output_filename
+echo "   > OS used: $os_run                                                    "    >> $output_filename
+echo "   > Architecture: $arch_run                                             "    >> $output_filename
+echo "   > Time Stamp: $timestamp                                              "    >> $output_filename
+echo "   > Total run time: $emulation_time                                     "    >> $output_filename
+echo "-------------------------------------------------------------------------"    >> $output_filename
+echo " YARA INFORMATION                                                        "    >> $output_filename
+
+YARA_RULE_MAX=3
+
+for ((i = 0; i < $YARA_RULE_MAX; i++))
+do
+    yara_topic=$(echo "$data" | jq -r '.data.yara_rules.results['$i']')
+    yara_title=$(echo "$yara_topic" | jq -r '.[0]')
+    yara_result=$(echo "$yara_topic" | jq -r '.[1]')
+
+    echo "   > $yara_title: $yara_result                                       "    >> $output_filename
+done
+
+echo "-------------------------------------------------------------------------"    >> $output_filename
 
 
-# len_threat_score=$(echo "$data" | jq -r '.data.threat_score.results.signatures | length')
-
-# real_length=$((len_threat_score))
-
-
-# for ((i = 0; i < $real_length; i++)); do
-#     echo "Número: $(echo "$data" | jq -r '.data.threat_score.results.signatures['$i'].discovered')"
-# done
 
 cat $output_filename
