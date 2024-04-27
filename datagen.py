@@ -46,7 +46,7 @@ def printError(error):
     print("--------------------------------------------\n")
 
 
-def PESqueezer(file, type):
+def PESqueezer(file, type=0):
     pe = pefile.PE(file)
     rowPE = []
     
