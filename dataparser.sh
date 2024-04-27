@@ -80,6 +80,8 @@ echo "   > Total run time: $emulation_time                                     "
 echo "-------------------------------------------------------------------------"    >> $output_filename
 echo " YARA INFORMATION                                                        "    >> $output_filename
 
+
+## YARA INFORMATION
 YARA_RULE_MAX=3
 
 for ((i = 0; i < $YARA_RULE_MAX; i++))
@@ -92,7 +94,6 @@ do
 done
 
 echo "-------------------------------------------------------------------------"    >> $output_filename
-
 
 
 cat $output_filename

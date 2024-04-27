@@ -1,6 +1,8 @@
 ###############################################################################
 # datagen.py
 # -----------------------------------------------------------------------------
+# Written by: José Pérez Vidal
+# -----------------------------------------------------------------------------
 # Description: this script generates a .csv file which gathers all the data
 # collected in the following directories:
 #   - ./benign   - Contains benign PE files.
@@ -105,9 +107,6 @@ def PESqueezer(file, type):
 #
 # HEADERS SELECTED
 #
-# 
-#
-#
 ###############################################################################
 
 header = ["Name", "Machine",
@@ -136,8 +135,6 @@ header = ["Name", "Machine",
 
 
 if __name__ == '__main__':
-
-    
 
     if len(sys.argv) != 2:
         printError("Invalid number of arguments")
