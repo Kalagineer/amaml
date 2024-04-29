@@ -19,7 +19,10 @@
 import datagen as dg
 
 import os
+import glob
 import joblib
+import numpy as np
+
 import pyfiglet
 
 
@@ -67,7 +70,7 @@ def printAMAML():
 #
 #
 def filePicker():
-    print ("-- FILE SELECTION--".center(MAX_LENGTH))
+    print ("-- FILE SELECTION --".center(MAX_LENGTH))
     file_flag=False
 
     # Menu loop.
@@ -84,21 +87,76 @@ def filePicker():
             if abort_response == 'n':
                 print("   > AMAML is closing... Farewell!\n")
                 exit (1)
-        else:
-            print ("   > %s will be analyzed." % (file_name) 
+        else: 
+            print (f"   > {file_name} will be analyzed. "
                 + "[" + colors.GREEN + "OK" + colors.END +"]\n")
             file_flag=True
 
     return file_name
 
-def fileAnalyzer(pe_data):
+def modelSelector():
+    available_models = glob.glob("*.pkl")
+
+    if (len(available_models) == 0):
+        print("   > There are currently 0 models. " 
+              + "[" + colors.RED + "ERROR" + colors.END +"]")
+        exit (1)
+
+    it = 1
+    selection = 0
+
+    print("-"*MAX_LENGTH)
+
+    print("\nPlease choose between the following models: ")
+
+    for model in available_models:
+        print(f"   {it}) {model}")
+        it += 1
+
+    while int(selection) < 1 or int(selection) > len(available_models):
+        selection = input("\nYour decision: ")
+
+    selected_model=available_models[int(selection)-1]
+
+    print (f"   > You have chosen: {selection}) - {selected_model} "
+                + "[" + colors.GREEN + "OK" + colors.END +"]\n")
+
+    return selected_model
+
+
+def fileAnalyzer(filename):
+    # PE data extraction
+    pe_info=dg.PESqueezer(file_name)
+
+    # PE data preparation
+    del pe_info[:2]             # First two values
+    del pe_info[-1]             # Last value
+    
+    pe_info = np.array(pe_info).astype(int)
+    pe_info = pe_info.reshape(1,-1)
+
     print ("-- FILE ANALYSIS--".center(MAX_LENGTH))
 
-    analysis_flag = False
+    analyzing_flag=False
 
+    while analyzing_flag == False:
+        model_to_use = modelSelector()
 
+        print(f"   > Analyzing {filename} with {model_to_use}..." 
+              + "[" + colors.GREEN + "OK" + colors.END +"]\n")
+        
+        classifier = joblib.load(model_to_use)
+        prediction = classifier.predict(pe_info)
 
+        if prediction == 1:
+            print(f"   > The file {filename} has been detected as " 
+                  + colors.RED + "MALICIOUS" + colors.END + ".")
+            print(colors.BOLD + "\nImmediate action is recommended." + colors.END)
+        else:
+            print(f"   > The file {filename} doesn't seem to be malicious.")
 
+        
+        
 
     
 
@@ -117,16 +175,9 @@ if __name__ == '__main__':
     # Ask for filename
     file_name=filePicker()
 
-    # PE data extraction
-    pe_info=dg.PESqueezer(file_name)
-
-    # PE data preparation
-    del pe_info[:2]             # First two values
-    del pe_info[-1]             # Last value
-
     # Menu for Machine Learning
 
-    fileAnalyzer(pe_info)
+    fileAnalyzer(file_name)
 
     # Load 
 
