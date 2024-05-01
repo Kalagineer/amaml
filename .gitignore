@@ -1,8 +1,10 @@
 data.csv
-.json
+request_files/*.json
+request_files/*.data
 .data
-./danger/*
-./safe/*
 ./datasets
 *.pkl
-*.exe
+danger/*.exe
+safe/*.exe
+safe/*.EXE
+datasets/*
