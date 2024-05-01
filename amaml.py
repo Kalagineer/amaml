@@ -22,6 +22,7 @@ import os
 import glob
 import joblib
 import numpy as np
+import subprocess as sp
 
 import pyfiglet
 
@@ -82,7 +83,8 @@ def filePicker():
             print("   > The file does not exist." 
                 + "[" + colors.RED + "ERROR" + colors.END +"]")
             
-            abort_response= input("Do you want to try again? [y/N] ").strip().lower()
+            abort_response= input("Do you want to try again?" 
+                                  + "[y/N] ").strip().lower()
             
             if abort_response == 'n':
                 print("   > AMAML is closing... Farewell!\n")
@@ -118,7 +120,7 @@ def modelSelector():
 
     selected_model=available_models[int(selection)-1]
 
-    print (f"   > You have chosen: {selection}) - {selected_model} "
+    print (f"\n   > You have chosen: {selection}) - {selected_model} "
                 + "[" + colors.GREEN + "OK" + colors.END +"]\n")
 
     return selected_model
@@ -138,6 +140,7 @@ def fileAnalyzer(filename):
     print ("-- FILE ANALYSIS--".center(MAX_LENGTH))
 
     analyzing_flag=False
+    continue_response='null'
 
     while analyzing_flag == False:
         model_to_use = modelSelector()
@@ -155,6 +158,34 @@ def fileAnalyzer(filename):
         else:
             print(f"   > The file {filename} doesn't seem to be malicious.")
 
+        while continue_response != 'y' and continue_response != 'n':
+            continue_response=input("\nWould like to use Malcore Services?" 
+                                    + " [y/N] ").strip().lower()
+                
+        if continue_response == 'y':
+            malcoreAssistant(filename)
+    
+
+def malcoreAssistant(filename):
+    uploader_script="uploader.sh"
+
+    if not os.path.exists(uploader_script):
+        print(f"> Missing {uploader_script} file." 
+              + "[" + colors.RED + "ERROR" + colors.END +"]")
+        exit (1)
+
+    parser_script="dataparser.sh"
+
+    if not os.path.exists(parser_script):
+        print(f"> Missing {parser_script} file." 
+              + "[" + colors.RED + "ERROR" + colors.END +"]")
+        exit (1)
+    
+    print(f"   > Sending the file {filename} to Malcore..." 
+          + "[" + colors.GREEN + "OK" + colors.END +"]\n")
+    
+    sp.run([uploader_script, filename])
+    
         
         
 
@@ -178,9 +209,3 @@ if __name__ == '__main__':
     # Menu for Machine Learning
 
     fileAnalyzer(file_name)
-
-    # Load 
-
-    # Menu for Malcore
-
-    # End
