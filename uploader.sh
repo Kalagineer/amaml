@@ -29,13 +29,19 @@ output_filename="status-$base_filename.json"
 
 
 state="running"
+ERROR_CODE="error code: 522"
+response=$ERROR_CODE
 
 # We send the petition to malcore servers
-response=$(curl -F "filename1=@$filename" -X POST -H "apiKey: $apiKey" -H "X-No-Poll: false" $url)
+while [[ $response == "$ERROR_CODE" ]]
+do
+    response=$(curl -F "filename1=@$filename" -X POST -H "apiKey: $apiKey" -H "X-No-Poll: true" $url)
+done
 
 if [[ $db = true ]]
 then
     echo " "
+    echo "Showing response:"
     echo "$response"
     echo " "
 fi
@@ -47,25 +53,16 @@ uuid=$(echo "$response" | jq -r '.data.data.uuid')
 if [[ $db = true ]]
 then
     echo " "
+    echo "Showing UUID:"
     echo "$uuid"
     echo " "
 fi
 
-# We receive the status of the scan
-status=$(curl -X POST https://api.malcore.io/api/status --data "uuid=$uuid" \
-         -H "apiKey: $apiKey")
 
-
-if [[ $db = true ]]
-then
-    echo " "
-    echo "$status"
-    echo " "
-fi
 
 # We make a periodic check until the scan is done
 # There is no automatic polling
-while [[ $state = "running" ]]
+while [[ $state == "running" ]]
 do
     status=$(curl -X POST https://api.malcore.io/api/status --data "uuid=$uuid" \
              -H "apiKey: $apiKey")
@@ -73,15 +70,21 @@ do
     if [[ $db = true ]]
     then
         echo " "
+        echo "Showing status:"
         echo "$status"
         echo " "
     fi
 
-    state=$(echo "$status" | jq -r '.data.status')
+
+    if [[ $status != "$ERROR_CODE" ]]
+    then
+        state=$(echo "$status" | jq -r '.data.status')
+    fi
 
     if [[ $db = true ]]
     then
         echo " "
+        echo "Showing state:"
         echo "$state"
         echo " "
     fi
@@ -92,12 +95,14 @@ done
 
 # Once it's done we update the status
 sleep 5
+
 status=$(curl -X POST https://api.malcore.io/api/status --data "uuid=$uuid" \
          -H "apiKey: $apiKey")
 
 echo "The file has been analyzed."
 
 echo " "
+echo "Showing status (2):"
 echo "$status"
 echo " "
 
