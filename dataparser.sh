@@ -10,6 +10,7 @@
 #           in the current working directory
 
 
+db=false
 
 #  First the existence of the file is checked
 if [ -f "$1" ]; then
@@ -19,23 +20,31 @@ else
     exit 1
 fi
 
+###############################################################################
+# Important variables
+#
+#
+base_filename=$(basename "$1" .json)
+ARCHIVE="request_files/"
+
+
 
 # Output file generator
-output_filename="parsed-${1%.json}.data"
+output_filename="${ARCHIVE}parsed-${base_filename}.data"
 
-echo "-------------------------------------------------------------------------"
-echo "   Generating file...        "
-echo "   > Output filename: $output_filename "
 
-touch $output_filename
+if [[ $db = true ]]
+then
+    echo "-------------------------------------------------------------------------"
+    echo "   Generating file...        "
+    echo "   > Output filename: $output_filename "
 
-echo "   > Input filename: $1       "
-echo "-------------------------------------------------------------------------"
+    touch $output_filename
 
-#db_info=$(echo "$data" | jq -r '.data')
-#echo "$db_info"
+    echo "   > Input filename: $1       "
+    echo "-------------------------------------------------------------------------"
+fi
 
-# sleep 10
 # JSON Parsing
 
 ## General Information
@@ -58,42 +67,25 @@ emulation_time=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0
 
 
 echo " " > $output_filename
-echo "-------------------------------------------------------------------------"    >> $output_filename
-echo " MALCORE ANALYSIS                                                        "    >> $output_filename
-echo "-------------------------------------------------------------------------"    >> $output_filename
-echo " GENERAL INFORMATION                                                     "    >> $output_filename
-echo "   > File type: $file_type                                               "    >> $output_filename
-echo "   > Threat Score: $threat_score                                         "    >> $output_filename
-echo "   > File Entropy: $file_entropy                                         "    >> $output_filename
-echo "   > Malcore AI Classification: $malcore_AIClass                         "    >> $output_filename
-echo "-------------------------------------------------------------------------"    >> $output_filename
-echo " RICH PE DATA                                                            "    >> $output_filename
-echo "   > Invalid PE Checksum: $invalid_pechecksum                            "    >> $output_filename
-echo "   > Malformed Rich PE Data: $malformed_richpedata                       "    >> $output_filename
-echo "   > Removed Rich PE Data: $removed_richpedata                           "    >> $output_filename
-echo "-------------------------------------------------------------------------"    >> $output_filename
-echo " DYNAMIC ANALYSIS DATA                                                   "    >> $output_filename
-echo "   > OS used: $os_run                                                    "    >> $output_filename
-echo "   > Architecture: $arch_run                                             "    >> $output_filename
-echo "   > Time Stamp: $timestamp                                              "    >> $output_filename
-echo "   > Total run time: $emulation_time                                     "    >> $output_filename
-echo "-------------------------------------------------------------------------"    >> $output_filename
-echo " YARA INFORMATION                                                        "    >> $output_filename
-
-
-## YARA INFORMATION
-YARA_RULE_MAX=3
-
-for ((i = 0; i < $YARA_RULE_MAX; i++))
-do
-    yara_topic=$(echo "$data" | jq -r '.data.yara_rules.results['$i']')
-    yara_title=$(echo "$yara_topic" | jq -r '.[0]')
-    yara_result=$(echo "$yara_topic" | jq -r '.[1]')
-
-    echo "   > $yara_title: $yara_result                                       "    >> $output_filename
-done
-
-echo "-------------------------------------------------------------------------"    >> $output_filename
-
+echo "================================================================================"     >> $output_filename
+echo " MALCORE ANALYSIS                                                        "            >> $output_filename
+echo "================================================================================"     >> $output_filename
+echo " GENERAL INFORMATION                                                     "            >> $output_filename
+echo "   > File type: $file_type                                               "            >> $output_filename
+echo "   > Threat Score: $threat_score                                         "            >> $output_filename
+echo "   > File Entropy: $file_entropy                                         "            >> $output_filename
+echo "   > Malcore AI Classification: $malcore_AIClass                         "            >> $output_filename
+echo "--------------------------------------------------------------------------------"     >> $output_filename
+echo " RICH PE DATA                                                            "            >> $output_filename
+echo "   > Invalid PE Checksum: $invalid_pechecksum                            "            >> $output_filename
+echo "   > Malformed Rich PE Data: $malformed_richpedata                       "            >> $output_filename
+echo "   > Removed Rich PE Data: $removed_richpedata                           "            >> $output_filename
+echo "--------------------------------------------------------------------------------"     >> $output_filename
+echo " DYNAMIC ANALYSIS DATA                                                   "            >> $output_filename
+echo "   > OS used: $os_run                                                    "            >> $output_filename
+echo "   > Architecture: $arch_run                                             "            >> $output_filename
+echo "   > Time Stamp: $timestamp                                              "            >> $output_filename
+echo "   > Total run time: $emulation_time                                     "            >> $output_filename
+echo "--------------------------------------------------------------------------------"     >> $output_filename
 
 cat $output_filename
