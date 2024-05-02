@@ -20,11 +20,14 @@ db=true
 # Important variables
 #
 #
-apiKey="c6427e9ae9d3085bdf4727a1470d99f6761bdc4f"           
+apiKey="e81827f033961368bf8be556227aa9dbee9dac0b"           
 url="https://api.malcore.io/api/upload"
 filename=$1
 base_filename=$(basename "$filename" .exe)
+
 output_filename="status-$base_filename.json"
+ARCHIVE="request_files/"
+output_path=$ARCHIVE$output_filename
 
 
 
@@ -101,12 +104,17 @@ status=$(curl -X POST https://api.malcore.io/api/status --data "uuid=$uuid" \
 
 echo "The file has been analyzed."
 
-echo " "
-echo "Showing status (2):"
-echo "$status"
-echo " "
+if [[ $db = true ]]
+then
+    echo " "
+    echo "Showing status (2):"
+    echo "$status"
+    echo " "
+fi
 
 # The file is created and written
-touch $output_filename
-echo "$status" > $output_filename
+touch $ARCHIVE$output_filename
+echo "$status" > $output_path
+
+echo "$output_path"
 
