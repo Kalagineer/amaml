@@ -97,7 +97,7 @@ def filePicker():
     return file_name
 
 def modelSelector():
-    available_models = glob.glob("*.pkl")
+    available_models = glob.glob("models/*.pkl")
 
     if (len(available_models) == 0):
         print("   > There are currently 0 models. " 
@@ -184,12 +184,15 @@ def malcoreAssistant(filename):
     print(f"   > Sending the file {filename} to Malcore..." 
           + "[" + colors.GREEN + "OK" + colors.END +"]\n")
     
-    sp.run([uploader_script, filename])
-    
-        
-        
+    op_uploader=sp.run(["./upload.sh", filename])
+    dp_output=sp.run(["./dataparser.sh", "request_files/status-00b6b7e3b923861ef8c257aa3803a239ce4d6154.json"],
+                        capture_output=True, text=True)
+
+    print(str(dp_output.stdout))
 
     
+        
+        
 
 ###############################################################################
 # 
