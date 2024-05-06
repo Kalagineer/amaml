@@ -167,14 +167,14 @@ def fileAnalyzer(filename):
     
 
 def malcoreAssistant(filename):
-    uploader_script="uploader.sh"
+    uploader_script="./uploader.sh"
 
     if not os.path.exists(uploader_script):
         print(f"> Missing {uploader_script} file." 
               + "[" + colors.RED + "ERROR" + colors.END +"]")
         exit (1)
 
-    parser_script="dataparser.sh"
+    parser_script="./dataparser.sh"
 
     if not os.path.exists(parser_script):
         print(f"> Missing {parser_script} file." 
@@ -184,8 +184,13 @@ def malcoreAssistant(filename):
     print(f"   > Sending the file {filename} to Malcore..." 
           + "[" + colors.GREEN + "OK" + colors.END +"]\n")
     
-    op_uploader=sp.run(["./upload.sh", filename])
-    dp_output=sp.run(["./dataparser.sh", "request_files/status-00b6b7e3b923861ef8c257aa3803a239ce4d6154.json"],
+    ul_output=sp.run([uploader_script, filename], capture_output=True, text=True)
+
+    path_to_dp=str(ul_output.stdout).strip()
+    print(f"   > Generated {path_to_dp}... Parsing."
+          + "[" + colors.GREEN + "OK" + colors.END +"]\n")
+
+    dp_output=sp.run([parser_script, path_to_dp],
                         capture_output=True, text=True)
 
     print(str(dp_output.stdout))

@@ -14,13 +14,13 @@
 
 
 # Debugging flag
-db=true
+db=false
 
 ###############################################################################
 # Important variables
 #
 #
-apiKey="e81827f033961368bf8be556227aa9dbee9dac0b"           
+apiKey="0263afac30771ac92bfe9643bed84bafc116e5d0"           
 url="https://api.malcore.io/api/upload"
 filename=$1
 base_filename=$(basename "$filename" .exe)
@@ -38,7 +38,7 @@ response=$ERROR_CODE
 # We send the petition to malcore servers
 while [[ $response == "$ERROR_CODE" ]]
 do
-    response=$(curl -F "filename1=@$filename" -X POST -H "apiKey: $apiKey" -H "X-No-Poll: true" $url)
+    response=$(curl -s -F "filename1=@$filename" -X POST -H "apiKey: $apiKey" -H "X-No-Poll: true" $url)
 done
 
 if [[ $db = true ]]
@@ -67,7 +67,7 @@ fi
 # There is no automatic polling
 while [[ $state == "running" ]]
 do
-    status=$(curl -X POST https://api.malcore.io/api/status --data "uuid=$uuid" \
+    status=$(curl -s -X POST https://api.malcore.io/api/status --data "uuid=$uuid" \
              -H "apiKey: $apiKey")
     
     if [[ $db = true ]]
@@ -92,17 +92,24 @@ do
         echo " "
     fi
 
+
+    if [[ $db = true ]]
+    then
     echo "In progress..."
+    fi
     sleep 5
 done
 
 # Once it's done we update the status
 sleep 5
 
-status=$(curl -X POST https://api.malcore.io/api/status --data "uuid=$uuid" \
+status=$(curl -s -X POST https://api.malcore.io/api/status --data "uuid=$uuid" \
          -H "apiKey: $apiKey")
 
-echo "The file has been analyzed."
+if [[ $db = true ]]
+then
+    echo "The file has been analyzed."
+fi
 
 if [[ $db = true ]]
 then
