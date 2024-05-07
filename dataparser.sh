@@ -14,7 +14,7 @@ db=false
 
 #  First the existence of the file is checked
 if [ -f "$1" ]; then
-    data=$(cat $1)
+    data=$(cat "$1")
 else
     echo "The file \"$1\" doesn't exist."
     exit 1
@@ -35,28 +35,95 @@ output_filename="${ARCHIVE}parsed-${base_filename}.data"
 
 if [[ $db = true ]]
 then
-    echo "-------------------------------------------------------------------------"
+    echo "$DIVIDER"
     echo "   Generating file...        "
     echo "   > Output filename: $output_filename "
 
-    touch $output_filename
+    touch "$output_filename"
 
     echo "   > Input filename: $1       "
-    echo "-------------------------------------------------------------------------"
+    echo "$DIVIDER"
 fi
 
-# JSON Parsing
 
-## General Information
-file_type=$(echo "$data" | jq -r '.data.threat_summary.results.file_type')
-threat_score=$(echo "$data" | jq -r '.data.threat_score.results.score')
-file_entropy=$(echo "$data" | jq -r '.data.threat_score.results.signatures[1].discovered')
-malcore_AIClass=$(echo "$data" | jq -r '.data.threat_score.results.signatures[5].discovered')
 
-## Rich PE Information
-invalid_pechecksum=$(echo "$data" | jq -r '.data.threat_score.results.signatures[6].discovered.invalid_rich_pe_checksum')
-malformed_richpedata=$(echo "$data" | jq -r '.data.threat_score.results.signatures[6].discovered.malformed_rich_pe_data')
-removed_richpedata=$(echo "$data" | jq -r '.data.threat_score.results.signatures[6].discovered.rich_data_removed')
+# JSON PARSING
+
+echo " "                                                                                >  "$output_filename"
+echo "_______________________________________________________________________________"  >> "$output_filename"
+echo " "                                                                                >> "$output_filename"
+echo " MALCORE ANALYSIS"                                                                >> "$output_filename"
+echo "_______________________________________________________________________________"  >> "$output_filename"
+echo " "                                                                                >> "$output_filename"
+echo " GENERAL INFORMATION"                                                             >> "$output_filename"
+
+## GENERAL INFORMATION
+
+file_type=$(jq -r '.data.threat_summary.results.file_type' <<< "$data")
+echo "   > File type: $file_type"                                                       >> "$output_filename"
+
+misc_info=$(jq -r '.data.exif_data.results.misc_information' <<< "$data")
+
+linker_version=$(jq -r '.linker_version' <<< "$misc_info")
+echo "   > Linker Version: $linker_version"                                             >> "$output_filename"
+
+img_file_charac=$(jq -r '.image_file_characteristics' <<< "$misc_info")
+echo "   > Image File Characteristics: $img_file_charac"                                >> "$output_filename"
+
+subsystem=$(jq -r '.subsystem' <<< "$misc_info")
+echo "   > Subsystem: $subsystem"                                                       >> "$output_filename"
+
+echo "_______________________________________________________________________________"  >> "$output_filename"
+echo " "                                                                                >> "$output_filename"
+
+## THREAT SCORE (ts)
+SUS_ASSEMB="Suspicious Assembly"
+UNK_SECTIONS="Unknown Sections"
+CODE_CAVE="Code Cave"
+DYN_IMPORT="Dynamic Import Loading"
+
+echo " THREAT SCORE INFORMATION"                                                        >> "$output_filename" 
+
+ts_data=$(jq -r '.data.threat_score.results' <<< "$data")
+ts_valor=$(jq -r '.score' <<< "$ts_data")
+
+ts_signatures=$(jq -r '.signatures' <<< "$ts_data")
+length_signatures=$(jq -r '. | length' <<< "$ts_signatures")
+
+echo "   > Threat Score: $ts_valor"                                                     >> "$output_filename"
+
+for (( i=0; i < length_signatures; i++))
+do 
+    current_signature=$(jq -r --argjson i "$i" '.[$i]' <<< "$ts_signatures")
+    name_current_sign=$(jq -r '.info.title' <<< "$current_signature")
+    type_current_sign=$(jq -r ' .discovered | type' <<< "$current_signature")
+    
+    if [[ $name_current_sign != "$SUS_ASSEMB" && $name_current_sign != "$UNK_SECTIONS" \
+        && $name_current_sign != "$CODE_CAVE" && $name_current_sign != "$DYN_IMPORT" ]]
+    then
+        echo "   > $name_current_sign"                                                  >> "$output_filename"
+
+        if [[ $type_current_sign == "array" ]]
+        then
+            length_discovered=$(jq -r '.discovered | length' <<< "$current_signature")
+
+            for (( j=0; j < length_discovered; j++ ))
+            do
+                current_discovered=$(jq -r --argjson j "$j" '.discovered[$j]' <<< "$current_signature")
+                echo "      - $current_discovered"                                      >> "$output_filename"
+            done
+        elif [[ $type_current_sign == "object" ]]
+        then
+            current_discovered=$(jq -r '.discovered' <<< "$current_signature" \
+                                | grep -o '"[^"]*": [^,}]*' | sed -e 's/"//g' -e 's/^/      - /') 
+            echo "$current_discovered"                                                  >> "$output_filename"
+        else
+            current_discovered=$(jq -r '.discovered' <<< "$current_signature")
+            echo "      - $current_discovered"                                          >> "$output_filename"
+        fi
+    fi
+done
+
 
 ## Dynamic Analysis
 os_run=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].os_run')
@@ -64,28 +131,13 @@ arch_run=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].arch
 timestamp=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].time_stamp')
 emulation_time=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].emulation_total_runtime')
 
+echo "_______________________________________________________________________________"  >> "$output_filename"
+echo " "                                                                                >> "$output_filename"
+echo " DYNAMIC ANALYSIS DATA"                                                           >> "$output_filename"
+echo "   > OS used: $os_run"                                                            >> "$output_filename"
+echo "   > Architecture: $arch_run"                                                     >> "$output_filename"
+echo "   > Time Stamp: $timestamp"                                                      >> "$output_filename"
+echo "   > Total run time: $emulation_time"                                             >> "$output_filename"
+echo "_______________________________________________________________________________"  >> "$output_filename"
 
-
-echo " " > $output_filename
-echo "================================================================================"     >> $output_filename
-echo " MALCORE ANALYSIS                                                        "            >> $output_filename
-echo "================================================================================"     >> $output_filename
-echo " GENERAL INFORMATION                                                     "            >> $output_filename
-echo "   > File type: $file_type                                               "            >> $output_filename
-echo "   > Threat Score: $threat_score                                         "            >> $output_filename
-echo "   > File Entropy: $file_entropy                                         "            >> $output_filename
-echo "   > Malcore AI Classification: $malcore_AIClass                         "            >> $output_filename
-echo "--------------------------------------------------------------------------------"     >> $output_filename
-echo " RICH PE DATA                                                            "            >> $output_filename
-echo "   > Invalid PE Checksum: $invalid_pechecksum                            "            >> $output_filename
-echo "   > Malformed Rich PE Data: $malformed_richpedata                       "            >> $output_filename
-echo "   > Removed Rich PE Data: $removed_richpedata                           "            >> $output_filename
-echo "--------------------------------------------------------------------------------"     >> $output_filename
-echo " DYNAMIC ANALYSIS DATA                                                   "            >> $output_filename
-echo "   > OS used: $os_run                                                    "            >> $output_filename
-echo "   > Architecture: $arch_run                                             "            >> $output_filename
-echo "   > Time Stamp: $timestamp                                              "            >> $output_filename
-echo "   > Total run time: $emulation_time                                     "            >> $output_filename
-echo "--------------------------------------------------------------------------------"     >> $output_filename
-
-cat $output_filename
+cat "$output_filename"
