@@ -35,14 +35,13 @@ output_filename="${ARCHIVE}parsed-${base_filename}.data"
 
 if [[ $db = true ]]
 then
-    echo "$DIVIDER"
+
     echo "   Generating file...        "
     echo "   > Output filename: $output_filename "
 
     touch "$output_filename"
 
     echo "   > Input filename: $1       "
-    echo "$DIVIDER"
 fi
 
 
@@ -50,30 +49,28 @@ fi
 # JSON PARSING
 
 echo " "                                                                                >  "$output_filename"
-echo "_______________________________________________________________________________"  >> "$output_filename"
+echo "==============================================================================="  >> "$output_filename"
 echo " "                                                                                >> "$output_filename"
 echo " MALCORE ANALYSIS"                                                                >> "$output_filename"
-echo "_______________________________________________________________________________"  >> "$output_filename"
+echo "==============================================================================="  >> "$output_filename"
 echo " "                                                                                >> "$output_filename"
 echo " GENERAL INFORMATION"                                                             >> "$output_filename"
 
 ## GENERAL INFORMATION
 
 file_type=$(jq -r '.data.threat_summary.results.file_type' <<< "$data")
-echo "   > File type: $file_type"                                                       >> "$output_filename"
 
 misc_info=$(jq -r '.data.exif_data.results.misc_information' <<< "$data")
-
 linker_version=$(jq -r '.linker_version' <<< "$misc_info")
-echo "   > Linker Version: $linker_version"                                             >> "$output_filename"
-
 img_file_charac=$(jq -r '.image_file_characteristics' <<< "$misc_info")
-echo "   > Image File Characteristics: $img_file_charac"                                >> "$output_filename"
-
 subsystem=$(jq -r '.subsystem' <<< "$misc_info")
+
+echo "   > Image File Characteristics: $img_file_charac"                                >> "$output_filename"
+echo "   > Linker Version: $linker_version"                                             >> "$output_filename"
+echo "   > File type: $file_type"                                                       >> "$output_filename"
 echo "   > Subsystem: $subsystem"                                                       >> "$output_filename"
 
-echo "_______________________________________________________________________________"  >> "$output_filename"
+echo "==============================================================================="  >> "$output_filename"
 echo " "                                                                                >> "$output_filename"
 
 ## THREAT SCORE (ts)
@@ -131,13 +128,13 @@ arch_run=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].arch
 timestamp=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].time_stamp')
 emulation_time=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].emulation_total_runtime')
 
-echo "_______________________________________________________________________________"  >> "$output_filename"
+echo "==============================================================================="  >> "$output_filename"
 echo " "                                                                                >> "$output_filename"
 echo " DYNAMIC ANALYSIS DATA"                                                           >> "$output_filename"
 echo "   > OS used: $os_run"                                                            >> "$output_filename"
 echo "   > Architecture: $arch_run"                                                     >> "$output_filename"
 echo "   > Time Stamp: $timestamp"                                                      >> "$output_filename"
 echo "   > Total run time: $emulation_time"                                             >> "$output_filename"
-echo "_______________________________________________________________________________"  >> "$output_filename"
+echo "==============================================================================="  >> "$output_filename"
 
 cat "$output_filename"

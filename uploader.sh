@@ -100,9 +100,6 @@ do
     sleep 5
 done
 
-# Once it's done we update the status
-sleep 5
-
 status=$(curl -s -X POST https://api.malcore.io/api/status --data "uuid=$uuid" \
          -H "apiKey: $apiKey")
 
@@ -120,8 +117,8 @@ then
 fi
 
 # The file is created and written
-touch $ARCHIVE$output_filename
-echo "$status" > $output_path
+touch "$ARCHIVE$output_filename"
+echo "$status" > "$output_path"
 
 echo "$output_path"
 

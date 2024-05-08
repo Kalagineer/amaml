@@ -1,11 +1,14 @@
 ###############################################################################
 # amaml.py
 # -----------------------------------------------------------------------------
-# Description: 
-# 
+# Written by: José Pérez Vidal
 # ----------------------------------------------------------------------------
-# Usage: 
+# Description: this file contains the usage of the models generated in
+# amaml.ipynb and joins it with the services of Malcore. It is considered
+# the "hub" of these two malware analysis technics.
 #
+#-----------------------------------------------------------------------------
+# Usage: python3 amaml.py
 ###############################################################################
 
 
@@ -27,6 +30,8 @@ import subprocess as sp
 import pyfiglet
 
 
+# STYLE CONSTANTS
+
 class colors:
     PURPLE = '\033[95m'
     CYAN = '\033[96m'
@@ -40,6 +45,7 @@ class colors:
     END = '\033[0m'
 
 MAX_LENGTH=80
+DIVIDER= "=" * MAX_LENGTH
 
 ###############################################################################
 # 
@@ -55,16 +61,14 @@ MAX_LENGTH=80
 def printAMAML():
     amaml_header = pyfiglet.Figlet(font='roman')
     ascii_amaml = amaml_header.renderText('AMAML')
-    divider = "=" * MAX_LENGTH
+    
     subtitle="<:: Automatic Malware Analysis using Machine Learning ::>"
     
-    print("\n" + divider)
+    print("\n" + DIVIDER)
     print(ascii_amaml)
-    print(divider)
+    print(DIVIDER)
     print(subtitle.center(MAX_LENGTH))
-    print(divider)
-
-
+    print(DIVIDER)
 
 ###############################################################################
 #
@@ -96,6 +100,11 @@ def filePicker():
 
     return file_name
 
+
+###############################################################################
+#
+#
+#
 def modelSelector():
     available_models = glob.glob("models/*.pkl")
 
@@ -125,7 +134,10 @@ def modelSelector():
 
     return selected_model
 
-
+###############################################################################
+#
+#
+#
 def fileAnalyzer(filename):
     # PE data extraction
     pe_info=dg.PESqueezer(file_name)
@@ -137,35 +149,25 @@ def fileAnalyzer(filename):
     pe_info = np.array(pe_info).astype(int)
     pe_info = pe_info.reshape(1,-1)
 
-    print ("-- FILE ANALYSIS--".center(MAX_LENGTH))
+    model_to_use = modelSelector()
 
-    analyzing_flag=False
-    continue_response='null'
-
-    while analyzing_flag == False:
-        model_to_use = modelSelector()
-
-        print(f"   > Analyzing {filename} with {model_to_use}..." 
-              + "[" + colors.GREEN + "OK" + colors.END +"]\n")
-        
-        classifier = joblib.load(model_to_use)
-        prediction = classifier.predict(pe_info)
-
-        if prediction == 1:
-            print(f"   > The file {filename} has been detected as " 
-                  + colors.RED + "MALICIOUS" + colors.END + ".")
-            print(colors.BOLD + "\nImmediate action is recommended." + colors.END)
-        else:
-            print(f"   > The file {filename} doesn't seem to be malicious.")
-
-        while continue_response != 'y' and continue_response != 'n':
-            continue_response=input("\nWould like to use Malcore Services?" 
-                                    + " [y/N] ").strip().lower()
-                
-        if continue_response == 'y':
-            malcoreAssistant(filename)
+    print(f"   > Analyzing {filename} with {model_to_use}..." 
+            + "[" + colors.GREEN + "OK" + colors.END +"]\n")
     
+    classifier = joblib.load(model_to_use)
+    prediction = classifier.predict(pe_info)
 
+    if prediction == 1:
+        print(f"   > The file {filename} has been detected as " 
+                + colors.RED + "MALICIOUS" + colors.END + ".")
+        print(colors.BOLD + "\nImmediate action is recommended." + colors.END)
+    else:
+        print(f"   > The file {filename} doesn't seem to be malicious.")
+    
+###############################################################################
+#
+#
+#
 def malcoreAssistant(filename):
     uploader_script="./uploader.sh"
 
@@ -195,15 +197,39 @@ def malcoreAssistant(filename):
 
     print(str(dp_output.stdout))
 
+
+
+###############################################################################
+#   
+#
+#
+def analyzerMenu(filename):
+    print(f"\nPlease choose in between these options:\n")
+    print(f"   1) AMAML Models\n   2) Malcore Services\n   3) Choose another file\n"
+         + "   4) Close AMAML\n")
+
+    answer=0
+
+    while answer <= 0 or answer > 4:
+        answer=int(input("Your decision: "))
+
+    if (answer == 1):
+        fileAnalyzer(filename)
+    elif (answer == 2):
+        malcoreAssistant(filename)
+    elif (answer == 3):
+        return False, True
+    elif (answer == 4):
+        return True, True
     
+    return False, False
         
+
         
 
 ###############################################################################
 # 
 # MAIN
-#
-#
 #
 ###############################################################################
 
@@ -211,9 +237,24 @@ def malcoreAssistant(filename):
 if __name__ == '__main__':
     printAMAML()
 
-    # Ask for filename
-    file_name=filePicker()
+    exec_flag=False
+    file_flag=False
+        
+    while exec_flag == False:
+        file_flag=False
 
-    # Menu for Machine Learning
+        # File Selector
+        file_name=filePicker()
 
-    fileAnalyzer(file_name)
+        print ("-- FILE ANALYSIS--".center(MAX_LENGTH))
+
+        while file_flag == False:
+            # File Analysis
+            exec_flag, file_flag=analyzerMenu(file_name)
+
+
+    print(DIVIDER)
+    print("Closing AMAML... See you soon!".center(MAX_LENGTH))
+    print(DIVIDER)
+
+    exit (0)

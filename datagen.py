@@ -3,14 +3,13 @@
 # -----------------------------------------------------------------------------
 # Written by: José Pérez Vidal
 # -----------------------------------------------------------------------------
-# Description: this script generates a .csv file which gathers all the data
-# collected in the following directories:
+# Description: this script generates a [filename].csv file which gathers all 
+# the data collected in the following directories:
 #   - ./benign   - Contains benign PE files.
 #   - ./mal      - Contains malicious PE files.
 # 
 # ----------------------------------------------------------------------------
-# Usage: 
-#
+# Usage: python3.py [filename]
 ###############################################################################
 
 
@@ -20,6 +19,9 @@
 #   - csv.    Module used to create and manipulate .csv files. 
 #   - pefile. Module used as a Portable Executable (PE) reader.
 #   - glob.   Module used to work around filenames.
+#   - sys.    Module providing several functions and variables to manipulate
+#             Python's runtime enviroment.
+#   - pathvalidate. Library to sanitize a string such as filenames and paths.
 #
 ###############################################################################
 
@@ -34,11 +36,20 @@ import pathvalidate
 # 
 # FUNCTIONS
 #
-#
-#
 ###############################################################################
 
 
+###############################################################################
+# Name: printError
+#------------------------------------------------------------------------------
+# Description: function used to provide useful information about the error
+#              that has risen.
+#------------------------------------------------------------------------------
+# Parameters:
+#    - error [STR]. String specifying the error.
+#------------------------------------------------------------------------------
+# Output: printed error message.
+#
 def printError(error):
     print("--------------------------------------------\n")
     print(error+"\n")
@@ -46,6 +57,19 @@ def printError(error):
     print("--------------------------------------------\n")
 
 
+###############################################################################
+# Name: PESqueezer
+#------------------------------------------------------------------------------
+# Description: provides an array with all the PE headers extracted out from
+#              the given file.
+#------------------------------------------------------------------------------
+# Parameters:
+#    - file. PE file to be used.
+#    - type. Last value of the array. 0 as benign software. 1 for malware.
+#            Default value set to 0.           
+#------------------------------------------------------------------------------
+# Output: array with PE Header info.
+#
 def PESqueezer(file, type=0):
     pe = pefile.PE(file)
     rowPE = []
@@ -133,6 +157,13 @@ header = ["Name", "Machine",
          "Malflag"
          ]
 
+
+
+###############################################################################
+# 
+# MAIN
+#
+###############################################################################
 
 if __name__ == '__main__':
 
