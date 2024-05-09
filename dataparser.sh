@@ -47,20 +47,18 @@ fi
 
 
 # JSON PARSING
-
 echo " "                                                                                >  "$output_filename"
 echo "==============================================================================="  >> "$output_filename"
-echo " "                                                                                >> "$output_filename"
 echo " MALCORE ANALYSIS"                                                                >> "$output_filename"
 echo "==============================================================================="  >> "$output_filename"
-echo " "                                                                                >> "$output_filename"
 echo " GENERAL INFORMATION"                                                             >> "$output_filename"
 
 ## GENERAL INFORMATION
 
 file_type=$(jq -r '.data.threat_summary.results.file_type' <<< "$data")
-
 misc_info=$(jq -r '.data.exif_data.results.misc_information' <<< "$data")
+
+# misc_info
 linker_version=$(jq -r '.linker_version' <<< "$misc_info")
 img_file_charac=$(jq -r '.image_file_characteristics' <<< "$misc_info")
 subsystem=$(jq -r '.subsystem' <<< "$misc_info")
@@ -69,11 +67,11 @@ echo "   > Image File Characteristics: $img_file_charac"                        
 echo "   > Linker Version: $linker_version"                                             >> "$output_filename"
 echo "   > File type: $file_type"                                                       >> "$output_filename"
 echo "   > Subsystem: $subsystem"                                                       >> "$output_filename"
-
 echo "==============================================================================="  >> "$output_filename"
-echo " "                                                                                >> "$output_filename"
 
 ## THREAT SCORE (ts)
+
+# Avoiding these sections of analysis
 SUS_ASSEMB="Suspicious Assembly"
 UNK_SECTIONS="Unknown Sections"
 CODE_CAVE="Code Cave"
@@ -89,8 +87,10 @@ length_signatures=$(jq -r '. | length' <<< "$ts_signatures")
 
 echo "   > Threat Score: $ts_valor"                                                     >> "$output_filename"
 
+## We loop through threat_score values
 for (( i=0; i < length_signatures; i++))
 do 
+    # We acquire useful information about the threat_score value (signature)
     current_signature=$(jq -r --argjson i "$i" '.[$i]' <<< "$ts_signatures")
     name_current_sign=$(jq -r '.info.title' <<< "$current_signature")
     type_current_sign=$(jq -r ' .discovered | type' <<< "$current_signature")
@@ -100,10 +100,12 @@ do
     then
         echo "   > $name_current_sign"                                                  >> "$output_filename"
 
+        # In case it's an array...
         if [[ $type_current_sign == "array" ]]
         then
             length_discovered=$(jq -r '.discovered | length' <<< "$current_signature")
 
+            # ... we loop through it
             for (( j=0; j < length_discovered; j++ ))
             do
                 current_discovered=$(jq -r --argjson j "$j" '.discovered[$j]' <<< "$current_signature")
@@ -111,6 +113,8 @@ do
             done
         elif [[ $type_current_sign == "object" ]]
         then
+
+            # If it's an object we parse it
             current_discovered=$(jq -r '.discovered' <<< "$current_signature" \
                                 | grep -o '"[^"]*": [^,}]*' | sed -e 's/"//g' -e 's/^/      - /') 
             echo "$current_discovered"                                                  >> "$output_filename"
@@ -129,7 +133,6 @@ timestamp=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].tim
 emulation_time=$(echo "$data" | jq -r '.data.dynamic_analysis.dynamic_analysis[0].emulation_total_runtime')
 
 echo "==============================================================================="  >> "$output_filename"
-echo " "                                                                                >> "$output_filename"
 echo " DYNAMIC ANALYSIS DATA"                                                           >> "$output_filename"
 echo "   > OS used: $os_run"                                                            >> "$output_filename"
 echo "   > Architecture: $arch_run"                                                     >> "$output_filename"

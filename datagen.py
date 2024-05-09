@@ -167,6 +167,7 @@ header = ["Name", "Machine",
 
 if __name__ == '__main__':
 
+    # Checking arguments
     if len(sys.argv) != 2:
         printError("Invalid number of arguments")
         sys.exit(1)
@@ -175,27 +176,32 @@ if __name__ == '__main__':
         printError("Error: invalid filename. Use another.")
         sys.exit(1)
 
-    filename = sys.argv[1]
-    filename += ".csv"
-
-    if os.path.exists(filename):
-        printError("Error: That file already exists. Try another name")
-        sys.exit(1)
-
+    # Checks existence of necessary directories
     if not "safe" in os.listdir() or not "danger" in os.listdir():
         print("Error: Deben existir los directorios ./safe y ./danger")
         sys.exit(1)
-        
 
+    # Creates filename
+    filename = sys.argv[1]
+    filename += ".csv"
+
+    #Checks filename
+    if os.path.exists(filename):
+        printError("Error: That file already exists. Try another name")
+        sys.exit(1)      
+
+    # We open our new .csv
     with open (filename, "w", encoding='UTF8') as file:
         fwriter = csv.writer(file)
         fwriter.writerow(header)
 
+        # For each safe file
         for it_file in os.listdir("./safe"):
             fpath = os.path.join("./safe", it_file)
             print(fpath)
             fwriter.writerow(PESqueezer(fpath, 0))
 
+        # For each malware
         for it_file in os.listdir("./danger"):
             fpath = os.path.join("./danger", it_file)
             print(fpath)
