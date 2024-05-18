@@ -57,6 +57,14 @@ def printError(error):
     print("--------------------------------------------\n")
 
 
+def PEChecker(file):
+    try:
+        pe = pefile.PE(file_path)
+        return True
+    except pefile.PEFormatError:
+        return False
+
+
 ###############################################################################
 # Name: PESqueezer
 #------------------------------------------------------------------------------
@@ -71,58 +79,62 @@ def printError(error):
 # Output: array with PE Header info.
 #
 def PESqueezer(file, type=0):
-    pe = pefile.PE(file)
     rowPE = []
-    
-    rowPE.append(os.path.basename(file))
-    rowPE.append(pe.FILE_HEADER.Machine)
-    
-    rowPE.append(str(pe.OPTIONAL_HEADER.AddressOfEntryPoint))
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfCode))
-    rowPE.append(str(pe.FILE_HEADER.Characteristics))
+    try:
+        pe = pefile.PE(file)
         
-    rowPE.append(str(pe.OPTIONAL_HEADER.MajorLinkerVersion))
-    rowPE.append(str(pe.OPTIONAL_HEADER.MinorLinkerVersion))
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfCode))
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfInitializedData))
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfUninitializedData))
-    rowPE.append(str(pe.OPTIONAL_HEADER.BaseOfCode))
-    rowPE.append(str(pe.OPTIONAL_HEADER.ImageBase))
-    rowPE.append(str(pe.OPTIONAL_HEADER.FileAlignment))
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfImage))
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfHeaders))
     
-    rowPE.append(str(pe.OPTIONAL_HEADER.MajorOperatingSystemVersion))
-    rowPE.append(str(pe.OPTIONAL_HEADER.MinorOperatingSystemVersion))
-    rowPE.append(str(pe.OPTIONAL_HEADER.MajorImageVersion))
-    rowPE.append(str(pe.OPTIONAL_HEADER.MinorImageVersion))
-    rowPE.append(str(pe.OPTIONAL_HEADER.MajorSubsystemVersion))
-    rowPE.append(str(pe.OPTIONAL_HEADER.MinorSubsystemVersion))
+        rowPE.append(os.path.basename(file))
+        rowPE.append(pe.FILE_HEADER.Machine)
+        
+        rowPE.append(str(pe.OPTIONAL_HEADER.AddressOfEntryPoint))
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfCode))
+        rowPE.append(str(pe.FILE_HEADER.Characteristics))
+            
+        rowPE.append(str(pe.OPTIONAL_HEADER.MajorLinkerVersion))
+        rowPE.append(str(pe.OPTIONAL_HEADER.MinorLinkerVersion))
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfCode))
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfInitializedData))
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfUninitializedData))
+        rowPE.append(str(pe.OPTIONAL_HEADER.BaseOfCode))
+        rowPE.append(str(pe.OPTIONAL_HEADER.ImageBase))
+        rowPE.append(str(pe.OPTIONAL_HEADER.FileAlignment))
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfImage))
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfHeaders))
+        
+        rowPE.append(str(pe.OPTIONAL_HEADER.MajorOperatingSystemVersion))
+        rowPE.append(str(pe.OPTIONAL_HEADER.MinorOperatingSystemVersion))
+        rowPE.append(str(pe.OPTIONAL_HEADER.MajorImageVersion))
+        rowPE.append(str(pe.OPTIONAL_HEADER.MinorImageVersion))
+        rowPE.append(str(pe.OPTIONAL_HEADER.MajorSubsystemVersion))
+        rowPE.append(str(pe.OPTIONAL_HEADER.MinorSubsystemVersion))
 
-   
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfStackReserve))
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfStackCommit))
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfHeapReserve))
-    rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfHeapCommit))
-       
-    rowPE.append(str(pe.OPTIONAL_HEADER.LoaderFlags))
-    rowPE.append(str(pe.OPTIONAL_HEADER.NumberOfRvaAndSizes))
-    rowPE.append(str(pe.OPTIONAL_HEADER.DllCharacteristics))
+    
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfStackReserve))
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfStackCommit))
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfHeapReserve))
+        rowPE.append(str(pe.OPTIONAL_HEADER.SizeOfHeapCommit))
+        
+        rowPE.append(str(pe.OPTIONAL_HEADER.LoaderFlags))
+        rowPE.append(str(pe.OPTIONAL_HEADER.NumberOfRvaAndSizes))
+        rowPE.append(str(pe.OPTIONAL_HEADER.DllCharacteristics))
 
-    rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
-                     ['IMAGE_DIRECTORY_ENTRY_EXPORT']].VirtualAddress))
-    rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
-                     ['IMAGE_DIRECTORY_ENTRY_IMPORT']].VirtualAddress))
-    rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
-                     ['IMAGE_DIRECTORY_ENTRY_RESOURCE']].VirtualAddress))
-    rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
-                     ['IMAGE_DIRECTORY_ENTRY_EXCEPTION']].VirtualAddress))
-    rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
-                     ['IMAGE_DIRECTORY_ENTRY_SECURITY']].VirtualAddress))   
+        rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
+                        ['IMAGE_DIRECTORY_ENTRY_EXPORT']].VirtualAddress))
+        rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
+                        ['IMAGE_DIRECTORY_ENTRY_IMPORT']].VirtualAddress))
+        rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
+                        ['IMAGE_DIRECTORY_ENTRY_RESOURCE']].VirtualAddress))
+        rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
+                        ['IMAGE_DIRECTORY_ENTRY_EXCEPTION']].VirtualAddress))
+        rowPE.append(str(pe.OPTIONAL_HEADER.DATA_DIRECTORY[pefile.DIRECTORY_ENTRY
+                        ['IMAGE_DIRECTORY_ENTRY_SECURITY']].VirtualAddress))   
 
-    rowPE.append(type)
-
-    return rowPE
+        rowPE.append(type)
+        return rowPE
+    except pefile.PEFormatError as e:
+        print(f"Error processing the file: {file}. Error: {e}\n")
+        return rowPE
 
     
 
