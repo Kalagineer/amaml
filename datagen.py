@@ -56,15 +56,6 @@ def printError(error):
     print("Use: python3 datagen.py [filename]\n")
     print("--------------------------------------------\n")
 
-
-def PEChecker(file):
-    try:
-        pe = pefile.PE(file_path)
-        return True
-    except pefile.PEFormatError:
-        return False
-
-
 ###############################################################################
 # Name: PESqueezer
 #------------------------------------------------------------------------------
