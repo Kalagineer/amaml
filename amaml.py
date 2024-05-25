@@ -20,6 +20,8 @@
 ###############################################################################
 
 import datagen as dg
+import tensorflow as tf
+from sklearn.preprocessing import StandardScaler
 
 import os
 import glob
@@ -106,7 +108,7 @@ def filePicker():
 #
 #
 def modelSelector():
-    available_models = glob.glob("models/*.pkl")
+    available_models = glob.glob("models/*.pkl") + glob.glob("models/*.keras")
 
     if (len(available_models) == 0):
         print("   > There are currently 0 models. " 
@@ -141,6 +143,8 @@ def modelSelector():
 def fileAnalyzer(filename):
     # PE data extraction
     pe_info=dg.PESqueezer(file_name)
+    scaler = StandardScaler()
+
 
     # PE data preparation
     del pe_info[:2]             # First two values
@@ -154,11 +158,24 @@ def fileAnalyzer(filename):
     print(f"   > Analyzing {filename} with {model_to_use}..." 
             + "[" + colors.GREEN + "OK" + colors.END +"]\n")
     
-    classifier = joblib.load(model_to_use)
-    prediction = classifier.predict(pe_info)
+    prediction = 0
+    threshold=0.25
+
+    if model_to_use.endswith('.pkl'):
+        model = joblib.load(model_to_use)
+        prediction = model.predict(pe_info)
+    elif model_to_use.endswith('.keras'):
+        pe_info_fitted = scaler.fit_transform(pe_info)
+        model = tf.keras.models.load_model(model_to_use)
+        predictions = model.predict(pe_info_fitted, verbose=2)
+        prediction = (predictions[0] >= threshold).astype(int)
+        print(f'Prediction: {prediction}')
+    else:
+        raise ValueError(f"Unsupported file: {model_to_use}" + "[" + colors.RED +
+                          "ERROR" + colors.END +"]")
 
     if prediction == 1:
-        print(f"   > The file {filename} has been detected as " 
+        print(f"\n   > The file {filename} has been detected as " 
                 + colors.RED + "MALICIOUS" + colors.END + ".")
         print(colors.BOLD + "\nImmediate action is recommended." + colors.END)
     else:
