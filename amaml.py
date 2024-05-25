@@ -159,7 +159,6 @@ def fileAnalyzer(filename):
             + "[" + colors.GREEN + "OK" + colors.END +"]\n")
     
     prediction = 0
-    threshold=0.25
 
     if model_to_use.endswith('.pkl'):
         model = joblib.load(model_to_use)
@@ -167,9 +166,9 @@ def fileAnalyzer(filename):
     elif model_to_use.endswith('.keras'):
         pe_info_fitted = scaler.fit_transform(pe_info)
         model = tf.keras.models.load_model(model_to_use)
-        predictions = model.predict(pe_info_fitted, verbose=2)
-        prediction = (predictions[0] >= threshold).astype(int)
-        print(f'Prediction: {prediction}')
+        predictions = model.predict(pe_info_fitted, verbose=1)
+        prediction = predictions[0][0]
+        prediction_pc = prediction * 100
     else:
         raise ValueError(f"Unsupported file: {model_to_use}" + "[" + colors.RED +
                           "ERROR" + colors.END +"]")
@@ -178,6 +177,9 @@ def fileAnalyzer(filename):
         print(f"\n   > The file {filename} has been detected as " 
                 + colors.RED + "MALICIOUS" + colors.END + ".")
         print(colors.BOLD + "\nImmediate action is recommended." + colors.END)
+    if prediction > 0:
+        print(f"The chances that the file {filename} is malicious are: " + colors.RED 
+              + str(prediction_pc) +" %" + colors.END)
     else:
         print(f"   > The file {filename} doesn't seem to be malicious.")
     
