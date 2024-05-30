@@ -177,7 +177,7 @@ def fileAnalyzer(filename):
         print(f"\n   > The file {filename} has been detected as " 
                 + colors.RED + "MALICIOUS" + colors.END + ".")
         print(colors.BOLD + "\nImmediate action is recommended." + colors.END)
-    if prediction > 0:
+    elif prediction > 0:
         print(f"The chances that the file {filename} is malicious are: " + colors.RED 
               + str(prediction_pc) +" %" + colors.END)
     else:
