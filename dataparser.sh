@@ -9,7 +9,6 @@
 #   Output: creates a human readable file called parsed-[file].data
 #           in the current working directory
 
-
 db=false
 
 #  First the existence of the file is checked
@@ -27,11 +26,8 @@ fi
 base_filename=$(basename "$1" .json)
 ARCHIVE="request_files/"
 
-
-
 # Output file generator
 output_filename="${ARCHIVE}parsed-${base_filename}.data"
-
 
 if [[ $db = true ]]
 then
@@ -43,8 +39,6 @@ then
 
     echo "   > Input filename: $1       "
 fi
-
-
 
 # JSON PARSING
 echo " "                                                                                >  "$output_filename"

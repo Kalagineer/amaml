@@ -16,7 +16,6 @@
 #
 # MODULES & CONSTANTS
 #
-#
 ###############################################################################
 
 import datagen as dg
@@ -53,12 +52,16 @@ DIVIDER= "=" * MAX_LENGTH
 # 
 # FUNCTIONS
 #
-#
-#
 ###############################################################################
 
 ###############################################################################
-#
+# Name: printAMAML
+#------------------------------------------------------------------------------
+# Description: Prints the header of the script.
+#------------------------------------------------------------------------------
+# Parameters:       
+#------------------------------------------------------------------------------
+# Output: printed header.
 #
 def printAMAML():
     amaml_header = pyfiglet.Figlet(font='roman')
@@ -73,8 +76,14 @@ def printAMAML():
     print(DIVIDER)
 
 ###############################################################################
-#
-#
+# Name: filePicker
+#------------------------------------------------------------------------------
+# Description: prompts a menu where you can select the path of the desired
+#              file. Checks if it exists.
+#------------------------------------------------------------------------------
+# Parameters:           
+#------------------------------------------------------------------------------
+# Output: path to the disered file.
 #
 def filePicker():
     print ("-- FILE SELECTION --".center(MAX_LENGTH))
@@ -82,6 +91,7 @@ def filePicker():
 
     # Menu loop.
     while file_flag == False:
+        # File to be analyzed
         file_name= input("\nPlease introduce the file that will be analyzed: ")
         
         # Let's check if it exists.
@@ -104,10 +114,17 @@ def filePicker():
 
 
 ###############################################################################
-#
-#
+# Name: modelSelector
+#------------------------------------------------------------------------------
+# Description: prompts the menu with the current generated files in the
+#              folder ./models. They can be either .pk. or .keras.
+#------------------------------------------------------------------------------
+# Parameters:      
+#------------------------------------------------------------------------------
+# Output: path of the selected model.
 #
 def modelSelector():
+    # List of generated models
     available_models = glob.glob("models/*.pkl") + glob.glob("models/*.keras")
 
     if (len(available_models) == 0):
@@ -126,6 +143,7 @@ def modelSelector():
         print(f"   {it}) {model}")
         it += 1
 
+    # Selection of model
     while int(selection) < 1 or int(selection) > len(available_models):
         selection = input("\nYour decision: ")
 
@@ -137,8 +155,16 @@ def modelSelector():
     return selected_model
 
 ###############################################################################
-#
-#
+# Name: fileAnalyzer
+#------------------------------------------------------------------------------
+# Description: takes the file passed by parameter and using the PESqueezer
+#              function and the model selected with modelSelector()
+#              the executable is analized.
+#------------------------------------------------------------------------------
+# Parameters:
+#    - filename. Path of the file to be analized.          
+#------------------------------------------------------------------------------
+# Output: prompts whether it is malicious or not.
 #
 def fileAnalyzer(filename):
     # PE data extraction
@@ -160,6 +186,7 @@ def fileAnalyzer(filename):
     
     prediction = 0
 
+    # Load the model and make the prediction with the PE
     if model_to_use.endswith('.pkl'):
         model = joblib.load(model_to_use)
         prediction = model.predict(pe_info)
@@ -184,17 +211,28 @@ def fileAnalyzer(filename):
         print(f"   > The file {filename} doesn't seem to be malicious.")
     
 ###############################################################################
-#
-#
+# Name: malcoreAssistant
+#------------------------------------------------------------------------------
+# Description: using both ./uploader.sh and ./dataparser.sh this function
+#              sends the malware selected to Malcore Servers for them to
+#              analyze it.
+#------------------------------------------------------------------------------
+# Parameters:
+#    - filename. Path of the file to be analized.          
+#------------------------------------------------------------------------------
+# Output: finished parsed status of the analysis.
 #
 def malcoreAssistant(filename):
+    # Assign the uploader script and its name
     uploader_script="./uploader.sh"
 
+    # Checking if it's there
     if not os.path.exists(uploader_script):
         print(f"> Missing {uploader_script} file." 
               + "[" + colors.RED + "ERROR" + colors.END +"]")
         exit (1)
 
+    # Same with the parser
     parser_script="./dataparser.sh"
 
     if not os.path.exists(parser_script):
@@ -205,12 +243,14 @@ def malcoreAssistant(filename):
     print(f"   > Sending the file {filename} to Malcore..." 
           + "[" + colors.GREEN + "OK" + colors.END +"]\n")
     
+    # Execute UpLoader
     ul_output=sp.run([uploader_script, filename], capture_output=True, text=True)
 
     path_to_dp=str(ul_output.stdout).strip()
     print(f"   > Generated {path_to_dp}... Parsing."
           + "[" + colors.GREEN + "OK" + colors.END +"]\n")
 
+    # Execute DataParser
     dp_output=sp.run([parser_script, path_to_dp],
                         capture_output=True, text=True)
 
@@ -219,8 +259,15 @@ def malcoreAssistant(filename):
 
 
 ###############################################################################
-#   
-#
+# Name: analyzerMenu
+#------------------------------------------------------------------------------
+# Description: Main function of the amaml.py that serves as a nexus to
+#              the fileAnalyzer function and to the malcoreAssistant function.
+#------------------------------------------------------------------------------
+# Parameters:
+#    - filename. Path of the file to be analized.          
+#------------------------------------------------------------------------------
+# Output: Control flow booleans
 #
 def analyzerMenu(filename):
     print(f"\nPlease choose in between these options:\n")
